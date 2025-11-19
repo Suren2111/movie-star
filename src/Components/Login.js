@@ -1,41 +1,94 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import Header from "./Header";
 import { validationCheck } from "../utils/validate";
-import {createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { auth } from "../utils/firebase";
 const Login = () => {
   const [isSignedIn, setIsSignedIn] = useState(true);
-  const[errMessage,setErrMessage]=useState(null);
+  const [errMessage, setErrMessage] = useState(null);
   const email = useRef(null);
   const password = useRef(null);
-  const name=useRef(null);
-  const validateForm=()=>{
-    if(name.current){
-      const Message=validationCheck(email.current.value,password.current.value,name.current.value);
-      setErrMessage(Message);
-    }
-    else{
-        const Message=validationCheck(email.current.value,password.current.value);
-        setErrMessage(Message);
-    }
-    if(!errMessage) return;
+  const name = useRef(null);
+  //   const validateForm=()=>{
+  //     if(name.current){
+  //       const Message=validationCheck(email.current.value,password.current.value,name.current.value);
+  //       setErrMessage(Message);
+  //     }
+  //     else{
+  //         const Message=validationCheck(email.current.value,password.current.value);
+  //         setErrMessage(Message);
+  //     }
+  //     if(!errMessage) return;
 
-    if(!isSignedIn){
-createUserWithEmailAndPassword(auth, email.current.value,password.current.value)
-  .then((userCredential) => {
-    // Signed up 
-    const user = userCredential.user;
-    console.log(user);
-    // ...
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    // ..
-  });
+  //     if(isSignedIn){
+  //       console.log("SignIn Page entered");
+  //   }
+  //   else{
+  //     console.log("SignUp Page entered");
+  //     createUserWithEmailAndPassword(auth, email.current.value,password.current.value)
+  //   .then((userCredential) => {
+  //     // Signed up
+  //     const user = userCredential.user;
+  //     console.log(user);
+  //     // ...
+  //   })
+  //   .catch((error) => {
+  //     const errorCode = error.code;
+  //     const errorMessage = error.message;
+  //     // ..
+  //   });
+  //   }
+  // }
+
+  const validateForm = () => {
+    const Message =
+      !isSignedIn && name.current?.value
+        ? validationCheck(
+            email.current.value,
+            password.current.value,
+            name.current.value
+          )
+        : validationCheck(email.current.value, password.current.value);
+
+    setErrMessage(Message);
+
+    if (Message) {
+      console.log(errMessage);
+      return;
     }
-    
-  }
+
+    if (isSignedIn) {
+      console.log("SignIn Page entered");
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log(user);
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+        });
+    } else {
+      console.log("SignUp Page entered");
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((res) => console.log(res.user))
+        .catch((err) => setErrMessage(err.message));
+    }
+  };
+
   const toggleSignIn = () => {
     setIsSignedIn(!isSignedIn);
   };
@@ -55,20 +108,20 @@ createUserWithEmailAndPassword(auth, email.current.value,password.current.value)
           <h1>{isSignedIn ? "Sign In" : "Sign Up"}</h1>
           {!isSignedIn && (
             <input
-            ref={name}
+              ref={name}
               type="text"
               className="p-2 bg-gray-700"
               placeholder="Name"
             ></input>
           )}
           <input
-          ref={email}
+            ref={email}
             type="text"
             className="p-2 bg-gray-700"
             placeholder="Email Address"
           ></input>
           <input
-          ref={password}
+            ref={password}
             type="password"
             placeholder="Password"
             className="p-2 bg-gray-700"
